@@ -18,6 +18,11 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 echo "Backend PID: $BACKEND_PID"
 
+echo "Starting Camera Detector (Port 5001)..."
+python backend/camera_detector.py &
+CAMERA_PID=$!
+echo "Camera Detector PID: $CAMERA_PID"
+
 # Wait for backend
 sleep 3
 
@@ -43,8 +48,9 @@ echo "Frontend PID: $FRONTEND_PID"
 
 echo "SmartPark is running!"
 echo "Backend: http://localhost:8000"
+echo "Camera Feed API: http://localhost:5001/video_feed"
 echo "Frontend: http://localhost:5173"
 echo "Press Ctrl+C to stop."
 
-# Wait for both processes
-wait $BACKEND_PID $FRONTEND_PID
+# Wait for all processes
+wait $BACKEND_PID $CAMERA_PID $FRONTEND_PID

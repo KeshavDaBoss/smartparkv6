@@ -60,3 +60,7 @@ class SensorData(BaseModel):
     # Mapping of pin/index to distance or status
     distances: List[float]
     source: str # "esp32_mall2" or "pi_mall1"
+
+class CameraSensorData(BaseModel):
+    source: str
+    statuses: dict # Dict of slot_id -> str ("OCCUPIED" or "FREE")

@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 import asyncio
 import contextlib
 
-from .models import Slot, User, UserCreate, Booking, BookingRequest, SlotStatus, SensorData, UserType
+from .models import Slot, User, UserCreate, Booking, BookingRequest, SlotStatus, SensorData, CameraSensorData, UserType
 from .database import slots_db, users_db, bookings_db, init_db, get_user_by_username
 from .hardware_service import setup_gpio, update_pi_sensors, set_led, PI_PINOUT
 
@@ -260,3 +260,17 @@ def receive_esp32_data(data: SensorData):
     esp_leds.append(s2_booked)
 
     return {"status": "ok", "leds": esp_leds}
+
+@app.post("/sensor/camera")
+def receive_camera_data(data: CameraSensorData):
+    print(f"Received Camera Data from {data.source}: {data.statuses}")
+    
+    for slot_id, status_str in data.statuses.items():
+        slot = slots_db.get(slot_id)
+        if slot:
+            if status_str == "OCCUPIED":
+                slot.status = SlotStatus.OCCUPIED
+            else:
+                slot.status = SlotStatus.FREE
+                
+    return {"status": "ok"}

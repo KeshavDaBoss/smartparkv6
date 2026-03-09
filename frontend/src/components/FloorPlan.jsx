@@ -112,6 +112,7 @@ export default function FloorPlan({ mallId, level, slots, refreshSlots, onNaviga
     };
 
     const canShowBookButton = (slot) => {
+        if (slot.mall_id === 'mall2') return false; // Bookings disabled for Mall 2
         if (slot.is_reserved_disabled || slot.is_reserved_elderly) return false;
         if (slot.slot_number === 1 || slot.slot_number === 2) return true;
         return false;
