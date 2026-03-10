@@ -1,7 +1,7 @@
 <div align="center">
   <img src="frontend/public/smartparklogo-clear.png" alt="SmartPark Logo" width="800" height="auto" />
-  <h1>SmartPark v6</h1>
-  <p><strong>Advanced Intelligent Parking Management System with AI Computer Vision</strong></p>
+  <h1>SmartPark v5</h1>
+  <p><strong>Advanced Intelligent Parking Management System</strong></p>
 
   <h3>Project Team</h3>
   <p><strong>Pratham Yadav</strong></p>
@@ -58,7 +58,7 @@ The v6 architecture maintains modularity while significantly advancing the Physi
 - **Navigation**: Custom A* Algorithm implementation.
 
 ### Hardware
-- **Compute**: Raspberry Pi 4 (8GB recommended for AI detection).
+- **Compute**: Raspberry Pi 4 or 5(8GB recommended for AI detection).
 - **Vision**: Raspberry Pi Camera Module V2 / USB Webcams.
 - **Sensors**: HC-SR04 Ultrasonic (for legacy Mall 1 support).
 
@@ -119,6 +119,6 @@ Log in using the **User 4 (Admin)** credentials to unlock system configuration f
 5. **Guidance**: Click **NAVIGATE** above any slot to see the animated path from the entry point.
 
 <div align="center">
-  <p>Maintained by <strong>Pratham Yadav and Kalepu Yashvardhan</strong></p>
+  <p>Maintained by <strong>Pratham Yadav</strong></p>
 </div>
 
