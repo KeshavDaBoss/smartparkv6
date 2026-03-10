@@ -64,6 +64,42 @@ export default function MallPage() {
                 <h1>{mallName} <span style={{ fontSize: '0.6em', opacity: 0.7 }}>Level {level}</span></h1>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {/* Admin: Configure ROIs button */}
+                    {mallId === 'mall2' && level === 1 && user?.username === 'user4' && (
+                        <button
+                            onClick={() => {
+                                fetch('http://localhost:5001/get_rois')
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.rois) {
+                                            const updatedRois = {};
+                                            for (let key in data.rois) {
+                                                let val = data.rois[key];
+                                                if (val && typeof val[0] === 'number') {
+                                                    updatedRois[key] = [
+                                                        [val[0], val[1]],
+                                                        [val[0] + val[2], val[1]],
+                                                        [val[0] + val[2], val[1] + val[3]],
+                                                        [val[0], val[1] + val[3]]
+                                                    ];
+                                                } else {
+                                                    updatedRois[key] = val;
+                                                }
+                                            }
+                                            setRois(updatedRois);
+                                        }
+                                        setShowRoiConfig(true);
+                                    })
+                                    .catch(err => {
+                                        console.error(err);
+                                        setShowRoiConfig(true);
+                                    });
+                            }}
+                            style={{ background: 'var(--primary)', padding: '8px 16px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <img src="/settings_icon.png" alt="settings" style={{ width: '20px', height: '20px' }} /> Configure ROIs
+                        </button>
+                    )}
+
                     {/* View Date Selector (To see future availability) */}
                     <select
                         className="input-field"
@@ -108,68 +144,11 @@ export default function MallPage() {
                 onNavigate={navTrigger > 0 ? navTrigger : null}
             />
 
-            {mallId === 'mall2' && level === 1 && user?.username === 'user4' && (
-                <div style={{ marginTop: '3rem', background: 'var(--bg-card)', padding: '1rem', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #444', paddingBottom: '0.5rem' }}>
-                        <h2 style={{ color: 'var(--text)', margin: 0 }}>Live Camera Feed (Admin)</h2>
-                        <button
-                            onClick={() => {
-                                // Fetch existing ROIs before opening
-                                fetch('http://localhost:5001/get_rois')
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.rois) {
-                                            const updatedRois = {};
-                                            for (let key in data.rois) {
-                                                let val = data.rois[key];
-                                                if (val && typeof val[0] === 'number') {
-                                                    // Convert legacy [x, y, w, h] to 4 points
-                                                    updatedRois[key] = [
-                                                        [val[0], val[1]],
-                                                        [val[0] + val[2], val[1]],
-                                                        [val[0] + val[2], val[1] + val[3]],
-                                                        [val[0], val[1] + val[3]]
-                                                    ];
-                                                } else {
-                                                    updatedRois[key] = val;
-                                                }
-                                            }
-                                            setRois(updatedRois);
-                                        }
-                                        setShowRoiConfig(true);
-                                    })
-                                    .catch(err => {
-                                        console.error(err);
-                                        setShowRoiConfig(true);
-                                    });
-                            }}
-                            style={{ background: 'var(--primary)', padding: '8px 16px', fontSize: '0.9rem' }}>
-                            ⚙️ Configure ROIs
-                        </button>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <img
-                            src="http://localhost:5001/video_feed"
-                            alt="Live Parking Feed"
-                            style={{
-                                width: '100%',
-                                maxWidth: '640px',
-                                border: '2px solid var(--primary)',
-                                borderRadius: '8px'
-                            }}
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='480' viewBox='0 0 640 480'%3E%3Crect width='640' height='480' fill='%23333'/%3E%3Ctext x='320' y='240' font-family='sans-serif' font-size='24' fill='%23888' text-anchor='middle' dominant-baseline='middle'%3ECamera Feed Offline%3C/text%3E%3C/svg%3E";
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
 
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
                 <Legend color="var(--slot-free)" label="Available" />
                 <Legend color="var(--slot-occupied)" label="Occupied" />
-                <Legend color="var(--slot-booked)" label="Booked (N/A Mall 2)" />
+                <Legend color="var(--slot-booked)" label="Booked" />
                 <Legend color="var(--slot-my-booking)" label="My Booking" />
             </div>
 
@@ -184,7 +163,9 @@ export default function MallPage() {
                     <div style={{ width: '640px', background: '#222', padding: '20px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ margin: 0 }}>Configure Regions of Interest</h2>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <button onClick={() => setRois(prev => ({ ...prev, [currentSlotConfig]: [] }))} style={{ background: '#ff9800', padding: '8px 15px', height: '37px', boxSizing: 'border-box', whiteSpace: 'nowrap' }}>Clear Slot</button>
+                                <button onClick={() => setShowRoiConfig(false)} style={{ background: '#ff4d4d', padding: '8px 15px' }}>Cancel</button>
                                 <button
                                     onClick={() => {
                                         fetch('http://localhost:5001/config_rois', {
@@ -199,10 +180,9 @@ export default function MallPage() {
                                             })
                                             .catch(err => alert('Failed to save ROIs: ' + err.message));
                                     }}
-                                    style={{ background: '#4caf50', padding: '8px 15px', fontWeight: 'bold' }}>
-                                    💾 Save
+                                    style={{ background: '#4caf50', padding: '8px 15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <img src="/save_icon.png" alt="save" style={{ width: '20px', height: '20px' }} /> Save
                                 </button>
-                                <button onClick={() => setShowRoiConfig(false)} style={{ background: '#ff4d4d', padding: '8px 15px' }}>Close</button>
                             </div>
                         </div>
 
@@ -225,9 +205,6 @@ export default function MallPage() {
                                     {sid} {rois[sid] && rois[sid].length > 0 ? '✓' : ''}
                                 </button>
                             ))}
-                            <button onClick={() => setRois(prev => ({ ...prev, [currentSlotConfig]: [] }))} style={{ background: '#ff9800', padding: '10px' }}>
-                                Clear Slot
-                            </button>
                         </div>
 
                         <div style={{ position: 'relative', width: '640px', height: '480px', border: '1px solid #555', cursor: 'crosshair', userSelect: 'none' }}
