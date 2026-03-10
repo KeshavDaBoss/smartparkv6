@@ -1,71 +1,66 @@
 <div align="center">
-  <img src="frontend/public/smartparklogo-clear.png" alt="SmartPark Logo" width="200" height="auto" />
+  <img src="frontend/public/smartparklogo-clear.png" alt="SmartPark Logo" width="800" height="auto" />
   <h1>SmartPark v6</h1>
-  <p><strong>Advanced AI-Powered Intelligent Parking Management System</strong></p>
+  <p><strong>Advanced Intelligent Parking Management System with AI Computer Vision</strong></p>
 
   <h3>Project Team</h3>
   <p><strong>Pratham Yadav</strong></p>
-  <p><strong>Kalepu Yashavardhan</strong></p>
+  <p> <strong>Kalepu Yashavardhan</strong></p>
 
   <br />
 </div>
 
 ## Overview
 
-**SmartPark v6** is a state-of-the-art parking management solution that leverages **Computer Vision and AI** to monitor parking occupancy in real-time. Moving beyond traditional ultrasonic sensors, v6 introduces a centralized AI vision system that uses a single camera feed to detect vehicles across multiple parking slots simultaneously.
+**SmartPark v6** is the next generation of our IoT-enabled parking management solution. Version 6 introduces a major technological shift by integrating **AI Computer Vision** for real-time occupancy monitoring alongside traditional sensor-based detection. 
 
-The platform features an **Interactive Floor Plan**, real-time **AI-driven occupancy updates**, and a powerful **Admin ROI Configuration Tool** that allows for flexible, free-form "painting" of parking zones.
+By leveraging **Edge AI** (MobileNet SSD) on a Raspberry Pi Camera, the system now provides high-fidelity detection for Mall 2, complemented by an interactive **ROI (Region of Interest) Paint Tool** for administrative configuration.
 
 ## System Architecture
 
-The architecture of SmartPark v6 is designed for high-performance edge computing and real-time visual processing:
+The v6 architecture maintains modularity while significantly advancing the Physical and Logic layers:
 
-1.  **AI Vision Layer (Camera Detector)**:
-    -   Powered by **OpenCV** and a **MobileNet SSD** deep learning model.
-    -   Processes live RTSP/CSI camera feeds to detect objects (Cars, Motorcycles, etc.).
-    -   Performs **Intersection over Union (IoU)** analysis against "Painted" Regions of Interest (ROIs).
-    -   Hosted as a dedicated service on **Port 5001**.
+1.  **Presentation Layer (Frontend)**:
+    -   Built with **React.js** and **Vite**.
+    -   **Interactive ROI Tool**: A specialized admin interface for "painting" parking slot boundaries directly onto a live camera feed.
+    -   **Dynamic Navigation**: Real-time pathfinding visualization with precision-centered targets.
 
-2.  **Management Layer (Backend)**:
-    -   Built with **FastAPI (Python)** for low-latency API handling.
-    -   Synchronizes AI vision data with the global parking state.
-    -   Manages user authentication, role-based access (Admin/User), and booking logic.
-    -   Implements **A* Pathfinding** for intelligent navigation.
+2.  **Logic & Data Layer (Backend)**:
+    -   **FastAPI (Python)**: High-speed API handling for bookings and status updates.
+    -   **AI Detector Subsystem**: A dedicated Flask-based service running **OpenCV** and **MobileNet SSD** for real-time object detection and ROI occupancy analysis.
+    -   **A* Navigation Engine**: Intelligent pathfinding for optimized slot assignment.
 
-3.  **Presentation Layer (Frontend)**:
-    -   High-performance **React.js** + **Vite** SPA.
-    -   **Dynamic Canvas Rendering**: Visualizes slot status with smooth GSAP animations.
-    -   **Admin Suite**: Exclusive access to the "Configure ROIs" tool featuring a brush-based painting interface for defining parking slots on the live feed.
+3.  **Physical Layer (Hardware & Edge Computing)**:
+    -   **Mall 1 (Sensor-Based)**: Utilizes Raspberry Pi GPIO with HC-SR04 ultrasonic sensors.
+    -   **Mall 2 (AI-Based)**: Utilizes the **Raspberry Pi Camera Module** for visual detection, eliminating the need for individual slot sensors.
 
 ## Key Capabilities
 
-- **AI-Powered Detection**: Continuous monitoring using deep learning; no physical sensors required per slot.
-- **Brush-Paint ROI Configuration (Admin Only)**:
-  - Flexibly define parking slots of any shape by "painting" over the live camera feed.
-  - Real-time visual feedback on detection overlap.
-- **Advanced Booking Engine**:
-  - Reserve slots for **Today** and **Tomorrow**.
-  - Dynamic conflict resolution and automated slot assignment.
-- **Intelligent Navigation**:
-  - **Animated Pathfinding**: Optimal A* route calculation from entry to the dead-center of the slot's bottom boundary.
-  - **Smart Redirection**: Suggests alternative levels/slots when capacity is reached.
-- **Role-Based Access Control**:
-  - **Admin (User 4)**: Exclusive access to Live Camera Feeds and ROI Configuration.
-  - **Standard User**: Streamlined booking and navigation experience.
+- **AI-Powered Occupancy (New)**: Real-time car detection using Computer Vision (MobileNet SSD) on edge hardware.
+- **Interactive ROI Configurator (New)**: A "painting" interface for admins to define or clear parking slot regions on the live feed.
+- **Admin Access Control (New)**: Specialized admin role (**User 4**) for secure access to the live feed and system configuration.
+- **Precision Navigation**:
+  - **A* Pathfinding**: Optimal route calculation from entry to the **dead center** of the slot's bottom boundary.
+  - **Auto-Assignment**: "Navigate to Closest" feature for one-tap parking solutions.
+- **Unified Booking Engine**:
+  - Flexible scheduling for **Today** and **Tomorrow**.
+  - Real-time synchronization between digital state and hardware detection.
+- **Refined User Experience**: Clean, modern dashboard with dynamic tab-based level navigation and consolidated UI elements.
 
 ---
 
 ## Technology Stack
 
 ### Software
-- **AI/Vision**: OpenCV, MobileNet SSD (Caffe), NumPy.
-- **Frontend**: React.js, Vite, HTML5 Canvas, GSAP.
-- **Backend**: FastAPI, Flask (Vision Service), Uvicorn.
-- **Data**: JSON-based persistence for ROIs and Slot configurations.
+- **Frontend**: React.js, Vite, HTML5 Canvas API, GSAP Animations.
+- **Backend API**: FastAPI (Python).
+- **Vision Engine**: OpenCV, MobileNet SSD (Caffe Model), Flask.
+- **Navigation**: Custom A* Algorithm implementation.
 
 ### Hardware
-- **Central Processing**: Raspberry Pi 4 / High-performance PC.
-- **Vision Hardware**: Raspberry Pi Camera Module / USB Webcam / RTSP IP Camera.
+- **Compute**: Raspberry Pi 4 (8GB recommended for AI detection).
+- **Vision**: Raspberry Pi Camera Module V2 / USB Webcams.
+- **Sensors**: HC-SR04 Ultrasonic (for legacy Mall 1 support).
 
 ---
 
@@ -73,51 +68,57 @@ The architecture of SmartPark v6 is designed for high-performance edge computing
 
 ### 1. Repository Setup
 ```bash
-git clone https://github.com/YourRepo/SmartPark.git
+git clone https://github.com/KeshavDaBoss/smartparkv6.git
 cd smartparkv6
 ```
 
-### 2. Environment Setup
+### 2. Automated System Setup (Raspberry Pi)
+We provide a comprehensive setup script to install all system dependencies including OpenCV, Python libraries, and environment configurations.
 ```bash
-# Install Python dependencies
-pip install -r backend/requirements.txt
-# Ensure OpenCV and DNN modules are available
+chmod +x setup_pi.sh
+./setup_pi.sh
 ```
 
-### 3. Frontend Initialization
+### 3. Application Launch
+Use the unified development script to start the Backend, Vision Engine, and Frontend simultaneously.
 ```bash
-cd frontend
-npm install
-cd ..
-```
-
-### 4. Application Launch
-The system requires both the Management Backend and the Vision Detector to be running:
-```bash
-# Start all services (Backend + Vision + Frontend)
 chmod +x run_dev.sh
 ./run_dev.sh
 ```
-- **Management API**: `http://localhost:8000`
-- **Vision Detector**: `http://localhost:5001`
+- **Backend API**: `http://localhost:8000`
+- **Vision Engine**: `http://localhost:5001`
 - **User Interface**: `http://localhost:5173`
 
 ---
 
-## User & Admin Manual
+## Admin Configuration (v6)
 
-### **For Users**
-1. **Login**: Use demo credentials (e.g., User 1/2/3).
-2. **Book**: Select a green slot, choose timing, and confirm.
-3. **Navigate**: Hit **NAVIGATE** to see the animated path to your spot.
+### Administrative Access
+Log in using the **User 4 (Admin)** credentials to unlock system configuration features.
 
-### **For Admins (User 4)**
-1. **Configure ROIs**: Click the **⚙️ Configure ROIs** button in the top header.
-2. **Paint Slots**: Select a Slot ID, then **click and drag** over the live video feed to define its area.
-3. **Save**: Click **Save** to update the detector's logic immediately.
+### Configuring ROIs
+1. Navigate to **Mall 2**.
+2. Click the **⚙️ Configure ROIs** button in the top header.
+3. Select a slot (e.g., S1).
+4. **Click and Drag** on the live feed to "paint" the region covering that slot.
+5. Click **Save** to apply the configuration.
+6. The AI detector will now monitor that painted region for vehicle occupancy in real-time.
 
 ---
+
+## User Manual
+
+1. **Dashboard**: Select a mall from the clean, search-enabled dashboard.
+2. **Level Navigation**: Use the level tabs to switch between floors.
+3. **Advanced Booking**: Choose "Today" or "Tomorrow" status from the dropdown to see availability.
+4. **Interactive Mapping**:
+   - **Green**: Available
+   - **Red Border**: Occupied
+   - **Blue**: Booked by others
+   - **Purple**: Your Booking
+5. **Guidance**: Click **NAVIGATE** above any slot to see the animated path from the entry point.
 
 <div align="center">
   <p>Maintained by <strong>Pratham Yadav and Kalepu Yashvardhan</strong></p>
 </div>
+
