@@ -61,7 +61,7 @@ export default function MallPage() {
             </button>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1>{mallName} <span style={{ fontSize: '0.6em', opacity: 0.7 }}>Level {level}</span></h1>
+                <h1>{mallName}</h1>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {/* Admin: Configure ROIs button */}

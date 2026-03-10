@@ -9,8 +9,8 @@ export default function Dashboard() {
     const [showMenu, setShowMenu] = useState(false);
 
     const malls = [
-        { id: 'mall1', name: 'Mall 1 (Levels 1 & 2)', location: 'Downtown' },
-        { id: 'mall2', name: 'Mall 2 (Level 1)', location: 'Uptown' }
+        { id: 'mall1', name: 'Mall 1' },
+        { id: 'mall2', name: 'Mall 2' }
     ];
 
     const filteredMalls = malls.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
@@ -77,7 +77,6 @@ export default function Dashboard() {
                         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
                         <h2 style={{ color: 'var(--success)' }}>{mall.name}</h2>
-                        <p style={{ color: '#888', marginTop: '0.5rem' }}>{mall.location}</p>
                         <button style={{ marginTop: '1.5rem', width: '100%' }}>View Availability</button>
                     </div>
                 ))}
