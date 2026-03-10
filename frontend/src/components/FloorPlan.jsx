@@ -195,7 +195,7 @@ export default function FloorPlan({ mallId, level, slots, refreshSlots, onNaviga
                     </div>
 
                     <div style={{
-                        position: 'absolute', bottom: '-50px',
+                        position: 'absolute', top: '-50px',
                         display: 'flex', gap: '8px', zIndex: 10
                     }}>
                         {showBook && (
@@ -308,7 +308,7 @@ export default function FloorPlan({ mallId, level, slots, refreshSlots, onNaviga
                 {/* Slots Row with Vertical Road Gap */}
                 <div style={{
                     display: 'flex', justifyContent: 'center', gap: '10px',
-                    marginBottom: '20px', marginTop: '40px',
+                    marginBottom: '20px', marginTop: '100px',
                     zIndex: 1, position: 'relative',
                     padding: '0 40px'
                 }}>
