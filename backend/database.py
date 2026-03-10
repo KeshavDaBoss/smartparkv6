@@ -39,6 +39,8 @@ def init_db():
     users_db["user2"] = User(id="user2", username="user2", password="password", is_disabled=True, is_elderly=False)
     # user3 (elderly)
     users_db["user3"] = User(id="user3", username="user3", password="password", is_disabled=False, is_elderly=True)
+    # user4 (admin)
+    users_db["user4"] = User(id="user4", username="user4", password="password", is_disabled=False, is_elderly=False)
 
     print(f"Initialized {len(slots_db)} slots and {len(users_db)} users.")
 

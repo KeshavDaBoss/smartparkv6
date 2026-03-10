@@ -112,9 +112,10 @@ export default function LoginPage() {
                     <div style={{ marginTop: '2rem', borderTop: '1px solid #444', paddingTop: '1rem' }}>
                         <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>Demo Logins:</p>
                         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                            <button style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user1'); setPassword('password'); }}>User1 (Normal)</button>
-                            <button style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user2'); setPassword('password'); }}>User2 (Disabled)</button>
-                            <button style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user3'); setPassword('password'); }}>User3 (Elderly)</button>
+                            <button type="button" style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user1'); setPassword('password'); }}>User1 (Normal)</button>
+                            <button type="button" style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user2'); setPassword('password'); }}>User2 (Disabled)</button>
+                            <button type="button" style={{ fontSize: '0.7rem', padding: '5px' }} onClick={() => { setUsername('user3'); setPassword('password'); }}>User3 (Elderly)</button>
+                            <button type="button" style={{ fontSize: '0.7rem', padding: '5px', background: 'var(--primary)' }} onClick={() => { setUsername('user4'); setPassword('password'); }}>User4 (Admin)</button>
                         </div>
                     </div>
                 )}

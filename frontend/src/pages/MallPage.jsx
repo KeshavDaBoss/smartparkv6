@@ -20,7 +20,6 @@ export default function MallPage() {
     const [rois, setRois] = useState({});
     const [currentSlotConfig, setCurrentSlotConfig] = useState('M2-L1-S1');
     const [drawing, setDrawing] = useState(false);
-    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
     const mallName = mallId === 'mall1' ? 'Mall 1' : 'Mall 2';
     const levels = mallId === 'mall1' ? [1, 2] : [1];
@@ -109,17 +108,34 @@ export default function MallPage() {
                 onNavigate={navTrigger > 0 ? navTrigger : null}
             />
 
-            {mallId === 'mall2' && level === 1 && (
+            {mallId === 'mall2' && level === 1 && user?.username === 'user4' && (
                 <div style={{ marginTop: '3rem', background: 'var(--bg-card)', padding: '1rem', borderRadius: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #444', paddingBottom: '0.5rem' }}>
-                        <h2 style={{ color: 'var(--text)', margin: 0 }}>Live Camera Feed</h2>
+                        <h2 style={{ color: 'var(--text)', margin: 0 }}>Live Camera Feed (Admin)</h2>
                         <button
                             onClick={() => {
                                 // Fetch existing ROIs before opening
                                 fetch('http://localhost:5001/get_rois')
                                     .then(res => res.json())
                                     .then(data => {
-                                        if (data.rois) setRois(data.rois);
+                                        if (data.rois) {
+                                            const updatedRois = {};
+                                            for (let key in data.rois) {
+                                                let val = data.rois[key];
+                                                if (val && typeof val[0] === 'number') {
+                                                    // Convert legacy [x, y, w, h] to 4 points
+                                                    updatedRois[key] = [
+                                                        [val[0], val[1]],
+                                                        [val[0] + val[2], val[1]],
+                                                        [val[0] + val[2], val[1] + val[3]],
+                                                        [val[0], val[1] + val[3]]
+                                                    ];
+                                                } else {
+                                                    updatedRois[key] = val;
+                                                }
+                                            }
+                                            setRois(updatedRois);
+                                        }
                                         setShowRoiConfig(true);
                                     })
                                     .catch(err => {
@@ -162,18 +178,38 @@ export default function MallPage() {
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.95)', zIndex: 1000,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '2rem'
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    paddingTop: '2rem', paddingBottom: '2rem', overflowY: 'auto'
                 }}>
                     <div style={{ width: '640px', background: '#222', padding: '20px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h2 style={{ margin: 0 }}>Configure Regions of Interest</h2>
-                            <button onClick={() => setShowRoiConfig(false)} style={{ background: '#ff4d4d', padding: '5px 15px' }}>Close</button>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => {
+                                        fetch('http://localhost:5001/config_rois', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(rois)
+                                        })
+                                            .then(res => res.json())
+                                            .then(() => {
+                                                alert('ROIs Saved Successfully!');
+                                                setShowRoiConfig(false);
+                                            })
+                                            .catch(err => alert('Failed to save ROIs: ' + err.message));
+                                    }}
+                                    style={{ background: '#4caf50', padding: '8px 15px', fontWeight: 'bold' }}>
+                                    💾 Save
+                                </button>
+                                <button onClick={() => setShowRoiConfig(false)} style={{ background: '#ff4d4d', padding: '8px 15px' }}>Close</button>
+                            </div>
                         </div>
 
                         <p style={{ color: '#aaa', fontSize: '0.9rem' }}>
                             1. Select a slot below.<br />
-                            2. Click and drag on the live feed to draw the detection box.<br />
-                            3. Click Save when you have drawn all 4 boxes.
+                            2. <strong>Click and drag</strong> on the live feed to <strong>paint</strong> over the slot.<br />
+                            3. Use "Clear Slot" if you make a mistake, then click <strong>Save</strong> when done.
                         </p>
 
                         <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
@@ -184,83 +220,75 @@ export default function MallPage() {
                                     style={{
                                         flex: 1,
                                         background: currentSlotConfig === sid ? 'var(--primary)' : '#444',
-                                        border: rois[sid] ? '2px solid #4caf50' : '2px solid transparent'
+                                        border: rois[sid] && rois[sid].length > 0 ? '2px solid #4caf50' : '2px solid transparent'
                                     }}>
-                                    {sid} {rois[sid] ? '✓' : ''}
+                                    {sid} {rois[sid] && rois[sid].length > 0 ? '✓' : ''}
                                 </button>
                             ))}
+                            <button onClick={() => setRois(prev => ({ ...prev, [currentSlotConfig]: [] }))} style={{ background: '#ff9800', padding: '10px' }}>
+                                Clear Slot
+                            </button>
                         </div>
 
                         <div style={{ position: 'relative', width: '640px', height: '480px', border: '1px solid #555', cursor: 'crosshair', userSelect: 'none' }}
                             onMouseDown={(e) => {
                                 const rect = e.currentTarget.getBoundingClientRect();
-                                setStartPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                                const x = Math.round(e.clientX - rect.left);
+                                const y = Math.round(e.clientY - rect.top);
                                 setDrawing(true);
+                                setRois(prev => ({
+                                    ...prev,
+                                    [currentSlotConfig]: [[x, y]]
+                                }));
                             }}
                             onMouseMove={(e) => {
                                 if (!drawing) return;
                                 const rect = e.currentTarget.getBoundingClientRect();
-                                const currentX = e.clientX - rect.left;
-                                const currentY = e.clientY - rect.top;
-
-                                const x = Math.min(startPos.x, currentX);
-                                const y = Math.min(startPos.y, currentY);
-                                const w = Math.abs(currentX - startPos.x);
-                                const h = Math.abs(currentY - startPos.y);
-
-                                setRois(prev => ({
-                                    ...prev,
-                                    [currentSlotConfig]: [Math.round(x), Math.round(y), Math.round(w), Math.round(h)]
-                                }));
+                                const x = Math.round(e.clientX - rect.left);
+                                const y = Math.round(e.clientY - rect.top);
+                                setRois(prev => {
+                                    const currentPoints = prev[currentSlotConfig] || [];
+                                    const last = currentPoints[currentPoints.length - 1];
+                                    if (last && Math.abs(x - last[0]) < 2 && Math.abs(y - last[1]) < 2) return prev;
+                                    return {
+                                        ...prev,
+                                        [currentSlotConfig]: [...currentPoints, [x, y]]
+                                    };
+                                });
                             }}
                             onMouseUp={() => setDrawing(false)}
                             onMouseLeave={() => setDrawing(false)}
                         >
-                            {/* Underlying Feed (snapshot or actual feed if we use MJPEG on canvas, but img is easier) */}
                             <img
                                 src="http://localhost:5001/video_feed"
+                                draggable="false"
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.5, pointerEvents: 'none' }}
                                 alt=""
                             />
 
-                            {/* Render drawn boxes */}
-                            {Object.entries(rois).map(([sid, coords]) => {
-                                if (!coords || coords.length !== 4) return null;
-                                const isCurrent = sid === currentSlotConfig;
-                                return (
-                                    <div key={sid} style={{
-                                        position: 'absolute',
-                                        left: coords[0], top: coords[1],
-                                        width: coords[2], height: coords[3],
-                                        border: `2px solid ${isCurrent ? '#fff' : '#4caf50'}`,
-                                        backgroundColor: isCurrent ? 'rgba(255, 255, 255, 0.2)' : 'rgba(76, 175, 80, 0.2)',
-                                        pointerEvents: 'none',
-                                        display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff',
-                                        fontWeight: 'bold', textShadow: '0 0 4px #000'
-                                    }}>
-                                        {sid}
-                                    </div>
-                                );
-                            })}
+                            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                                {Object.entries(rois).map(([sid, pts]) => {
+                                    if (!pts || pts.length < 2) return null;
+                                    const isCurrent = sid === currentSlotConfig;
+                                    const pointsStr = pts.map(p => `${p[0]},${p[1]}`).join(' ');
+                                    return (
+                                        <g key={sid}>
+                                            <polyline
+                                                points={pointsStr}
+                                                fill="none"
+                                                stroke={isCurrent ? 'rgba(255, 255, 255, 0.5)' : 'rgba(76, 175, 80, 0.5)'}
+                                                strokeWidth="40"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                            <text x={pts[0][0]} y={pts[0][1] - 30} fill="#fff" fontSize="16" fontWeight="bold" textAnchor="middle" style={{ textShadow: '0 0 4px #000' }}>
+                                                {sid}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
                         </div>
-
-                        <button
-                            onClick={() => {
-                                fetch('http://localhost:5001/config_rois', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(rois)
-                                })
-                                    .then(res => res.json())
-                                    .then(() => {
-                                        alert('ROIs Saved Successfully!');
-                                        setShowRoiConfig(false);
-                                    })
-                                    .catch(err => alert('Failed to save ROIs: ' + err.message));
-                            }}
-                            style={{ width: '100%', marginTop: '1rem', background: '#4caf50', padding: '15px', fontSize: '1.1rem' }}>
-                            💾 Save ROIs to Camera
-                        </button>
                     </div>
                 </div>
             )}

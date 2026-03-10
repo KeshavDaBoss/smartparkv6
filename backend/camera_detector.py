@@ -32,12 +32,12 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
            "sofa", "train", "tvmonitor"]
 
-# Default ROIs
+# Default ROIs (Empty for painting)
 ROIS = {
-    "M2-L1-S1": [50, 200, 100, 100],
-    "M2-L1-S2": [170, 200, 100, 100],
-    "M2-L1-S3": [290, 200, 100, 100],
-    "M2-L1-S4": [410, 200, 100, 100],
+    "M2-L1-S1": [],
+    "M2-L1-S2": [],
+    "M2-L1-S3": [],
+    "M2-L1-S4": [],
 }
 
 def load_rois():
@@ -66,31 +66,35 @@ load_rois()
 # Shared frame for streaming
 output_frame = None
 
-def get_iou(bb1, bb2):
+def get_iou(slot_pts, car_box):
     """
-    Calculate the Intersection over Union (IoU) of two bounding boxes.
-    bb = [x, y, w, h]
+    Calculate the intersection coverage of a painted path and a rectangular car box.
     """
-    x1, y1, w1, h1 = bb1
-    x2, y2, w2, h2 = bb2
-    
-    # Coordinates of the intersection rectangle
-    x_left = max(x1, x2)
-    y_top = max(y1, y2)
-    x_right = min(x1 + w1, x2 + w2)
-    y_bottom = min(y1 + h1, y2 + h2)
-
-    if x_right < x_left or y_bottom < y_top:
+    try:
+        x, y, w, h = car_box
+        
+        # Create an empty mask for the slot painted path
+        slot_mask = np.zeros((480, 640), dtype=np.uint8)
+        pts = np.array(slot_pts, np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv2.polylines(slot_mask, [pts], isClosed=False, color=255, thickness=40)
+        
+        # Create an empty mask for the car bounding box
+        car_mask = np.zeros((480, 640), dtype=np.uint8)
+        cv2.rectangle(car_mask, (x, y), (x + w, y + h), 255, -1)
+        
+        # Calculate intersection
+        intersection = cv2.bitwise_and(slot_mask, car_mask)
+        
+        slot_area = np.count_nonzero(slot_mask)
+        if slot_area == 0:
+            return 0.0
+            
+        intersection_area = np.count_nonzero(intersection)
+        return intersection_area / float(slot_area)
+    except Exception as e:
+        print(f"Error calculating coverage: {e}")
         return 0.0
-
-    intersection_area = (x_right - x_left) * (y_bottom - y_top)
-    
-    # Area of bb1 (the slot ROI)
-    bb1_area = w1 * h1
-    
-    # We care about how much of the slot is covered by the car.
-    # Alternatively, you can use standard IoU. Here, intersection / ROI area is often better for parking.
-    return intersection_area / float(bb1_area)
 
 def process_frame():
     global output_frame
@@ -116,9 +120,9 @@ def process_frame():
             
             for i in np.arange(0, detections.shape[2]):
                 confidence = detections[0, 0, i, 2]
-                if confidence > 0.4:
+                if confidence > 0.15:
                     idx = int(detections[0, 0, i, 1])
-                    if CLASSES[idx] == "car":
+                    if CLASSES[idx] in ["car", "bus"]:
                         # Compute coordinates
                         box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                         (startX, startY, endX, endY) = box.astype("int")
@@ -133,22 +137,32 @@ def process_frame():
                         cv2.putText(frame, f"Car: {confidence*100:.1f}%", (startX, startY - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
         slot_status = {}
-        for slot_id, (rx, ry, rw, rh) in ROIS.items():
+        
+        # Create a single semi-transparent overlay for all ROIs
+        overlay = frame.copy()
+        for slot_id, slot_pts in ROIS.items():
+            if not slot_pts or len(slot_pts) < 2:
+                continue # Need at least a line
+
             is_occupied = False
             
             # Check intersection with any detected car
             for car_box in car_boxes:
-                coverage = get_iou([rx, ry, rw, rh], car_box)
-                if coverage > 0.3: # If 30% of the ROI is covered by a car bounding box
+                coverage = get_iou(slot_pts, car_box)
+                if coverage > 0.05: # If just 5% of the ROI path is covered
                     is_occupied = True
                     break
             
             slot_status[slot_id] = "OCCUPIED" if is_occupied else "FREE"
             
-            # Draw ROI on frame
+            # Draw ROI on overlay
             color = (0, 0, 255) if is_occupied else (0, 255, 0)
-            cv2.rectangle(frame, (rx, ry), (rx+rw, ry+rh), color, 2)
-            cv2.putText(frame, slot_id, (rx, ry-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            pts = np.array(slot_pts, np.int32).reshape((-1, 1, 2))
+            
+            cv2.polylines(overlay, [pts], isClosed=False, color=color, thickness=40)
+            cv2.putText(frame, slot_id, (slot_pts[0][0], max(30, slot_pts[0][1]-30)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+        cv2.addWeighted(overlay, 0.4, frame, 0.6, 0, frame)
 
         output_frame = frame.copy()
         
@@ -185,15 +199,10 @@ def video_feed():
 @app.route('/config_rois', methods=['POST', 'OPTIONS'])
 def config_rois():
     if request.method == 'OPTIONS':
-        # Quick and dirty CORS for the setup tool
         response = app.make_default_options_response()
-        headers = None
-        if 'ACCESS_CONTROL_REQUEST_HEADERS' in request.headers:
-            headers = request.headers['ACCESS_CONTROL_REQUEST_HEADERS']
-        
         response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'POST'
-        response.headers['Access-Control-Allow-Headers'] = headers
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
         
     global ROIS

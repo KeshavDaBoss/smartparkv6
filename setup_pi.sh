@@ -42,9 +42,9 @@ if [ ! -d "venv" ]; then
     pip install rpi-lgpio
 
     echo "Downloading MobileNet SSD Models for AI Detection..."
-    if [ ! -f "backend/MobileNetSSD_deploy.caffemodel" ]; then
+    if [ ! -f "backend/MobileNetSSD_deploy.caffemodel" ] || [ $(stat -f%z "backend/MobileNetSSD_deploy.caffemodel") -lt 10000000 ]; then
         curl -L https://raw.githubusercontent.com/chuanqi305/MobileNet-SSD/master/voc/MobileNetSSD_deploy.prototxt -o backend/MobileNetSSD_deploy.prototxt
-        curl -L https://raw.githubusercontent.com/chuanqi305/MobileNet-SSD/master/voc/MobileNetSSD_deploy.caffemodel -o backend/MobileNetSSD_deploy.caffemodel
+        curl -L https://github.com/nikmart/pi-object-detection/raw/master/MobileNetSSD_deploy.caffemodel -o backend/MobileNetSSD_deploy.caffemodel
         echo "Models downloaded successfully."
     else
         echo "Models already exist."
