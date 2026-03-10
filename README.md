@@ -1,101 +1,90 @@
 <div align="center">
   <img src="frontend/public/smartparklogo-clear.png" alt="SmartPark Logo" width="200" height="auto" />
-  <h1>SmartPark v5</h1>
-  <p><strong>Advanced Intelligent Parking Management System</strong></p>
+  <h1>SmartPark v6</h1>
+  <p><strong>Advanced AI-Powered Intelligent Parking Management System</strong></p>
 
   <h3>Project Team</h3>
   <p><strong>Pratham Yadav</strong></p>
-  <p> <strong>Kalepu Yashavardhan</strong></p>
+  <p><strong>Kalepu Yashavardhan</strong></p>
 
   <br />
 </div>
 
 ## Overview
 
-**SmartPark v5** is a comprehensive IoT-enabled parking management solution designed to optimize urban mobility. By integrating edge computing hardware (ESP32/Raspberry Pi) with a sophisticated web platform, the system delivers real-time occupancy monitoring, seamless capability for advance slot booking, and intelligent navigation assistance.
+**SmartPark v6** is a state-of-the-art parking management solution that leverages **Computer Vision and AI** to monitor parking occupancy in real-time. Moving beyond traditional ultrasonic sensors, v6 introduces a centralized AI vision system that uses a single camera feed to detect vehicles across multiple parking slots simultaneously.
 
-The platform features a **Dynamic Floor Plan** offering immediate visual feedback on slot availability, utilizing advanced pathfinding algorithms to guide users efficiently to their designated spots.
+The platform features an **Interactive Floor Plan**, real-time **AI-driven occupancy updates**, and a powerful **Admin ROI Configuration Tool** that allows for flexible, free-form "painting" of parking zones.
 
 ## System Architecture
 
-The architecture of SmartPark v5 is designed for modularity, scalability, and real-time performance. It consists of three primary layers:
+The architecture of SmartPark v6 is designed for high-performance edge computing and real-time visual processing:
 
-1.  **Presentation Layer (Frontend)**:
-    -   Built with **React.js** and **Vite** for high-performance rendering.
-    -   Visualizes the parking floor plan dynamically.
-    -   Communicates with the backend via RESTful APIs to fetch slot status and manage bookings.
+1.  **AI Vision Layer (Camera Detector)**:
+    -   Powered by **OpenCV** and a **MobileNet SSD** deep learning model.
+    -   Processes live RTSP/CSI camera feeds to detect objects (Cars, Motorcycles, etc.).
+    -   Performs **Intersection over Union (IoU)** analysis against "Painted" Regions of Interest (ROIs).
+    -   Hosted as a dedicated service on **Port 5001**.
 
-2.  **Logic & Data Layer (Backend)**:
-    -   Powered by **FastAPI (Python)**, ensuring low-latency request handling.
-    -   Manages the state of all parking slots, processing data from hardware sensors and user interactions.
-    -   Implements complex logic for pathfinding (A* algorithm), conflict resolution for bookings, and user authentication.
+2.  **Management Layer (Backend)**:
+    -   Built with **FastAPI (Python)** for low-latency API handling.
+    -   Synchronizes AI vision data with the global parking state.
+    -   Manages user authentication, role-based access (Admin/User), and booking logic.
+    -   Implements **A* Pathfinding** for intelligent navigation.
 
-3.  **Physical Layer (Hardware & Edge Computing)**:
-    -   **Raspberry Pi 4**: Acts as the central gateway and controls local sensors for Mall 1. It hosts the backend server.
-    -   **ESP32 Node**: A wireless sensor node for Mall 2 that transmits ultrasonic sensor data to the main server over WiFi. It also controls local LED indicators for booking visualization.
+3.  **Presentation Layer (Frontend)**:
+    -   High-performance **React.js** + **Vite** SPA.
+    -   **Dynamic Canvas Rendering**: Visualizes slot status with smooth GSAP animations.
+    -   **Admin Suite**: Exclusive access to the "Configure ROIs" tool featuring a brush-based painting interface for defining parking slots on the live feed.
 
 ## Key Capabilities
 
-- **Real-Time Occupancy Detection**: Precision monitoring using HC-SR04 ultrasonic sensors.
+- **AI-Powered Detection**: Continuous monitoring using deep learning; no physical sensors required per slot.
+- **Brush-Paint ROI Configuration (Admin Only)**:
+  - Flexibly define parking slots of any shape by "painting" over the live camera feed.
+  - Real-time visual feedback on detection overlap.
 - **Advanced Booking Engine**:
-  - Flexible scheduling for **Today** and **Tomorrow**.
-  - Multi-slot reservation capability.
-  - Automated conflict resolution logic.
+  - Reserve slots for **Today** and **Tomorrow**.
+  - Dynamic conflict resolution and automated slot assignment.
 - **Intelligent Navigation**:
-  - **Interactive Floor Plan**: Dynamic visualization of slot states (Free, Occupied, Booked, My Booking).
-  - **A* Pathfinding**: Optimal route calculation from entry to slot.
-  - **Load Balancing**: Automated redirection to alternative levels when capacity is reached.
-- **Accessibility Focus**:
-  - Reserved zones for **Disabled** and **Elderly** users.
-  - Profile-based access control ensuring restricted slots are only bookable by authorized users.
-- **Hardware Feedback Loop**:
-  - Physical LED indicators sync with digital booking state in real-time.
+  - **Animated Pathfinding**: Optimal A* route calculation from entry to the dead-center of the slot's bottom boundary.
+  - **Smart Redirection**: Suggests alternative levels/slots when capacity is reached.
+- **Role-Based Access Control**:
+  - **Admin (User 4)**: Exclusive access to Live Camera Feeds and ROI Configuration.
+  - **Standard User**: Streamlined booking and navigation experience.
 
 ---
 
 ## Technology Stack
 
 ### Software
-- **Frontend**: React.js, Vite, Canvas API, GSAP.
-- **Backend**: FastAPI (Python), Uvicorn, Pydantic.
-- **Data Persistence**: In-memory structure (Performance-optimized for demonstration).
-- **Protocols**: REST API, HTTP/JSON.
+- **AI/Vision**: OpenCV, MobileNet SSD (Caffe), NumPy.
+- **Frontend**: React.js, Vite, HTML5 Canvas, GSAP.
+- **Backend**: FastAPI, Flask (Vision Service), Uvicorn.
+- **Data**: JSON-based persistence for ROIs and Slot configurations.
 
 ### Hardware
-- **Central Unit**: Raspberry Pi 4.
-- **Sensor Nodes**: ESP32 (WiFi-enabled Microcontroller).
-- **Sensors**: HC-SR04 Ultrasonic modules.
-- **Actuators**: Status LEDs.
+- **Central Processing**: Raspberry Pi 4 / High-performance PC.
+- **Vision Hardware**: Raspberry Pi Camera Module / USB Webcam / RTSP IP Camera.
 
 ---
 
 ## Installation & Deployment
 
-### Prerequisites
-- Python 3.9+
-- Node.js & npm
-- Raspberry Pi (Generic Linux environment supported)
-- ESP32 Development Board
-
 ### 1. Repository Setup
 ```bash
 git clone https://github.com/YourRepo/SmartPark.git
-cd SmartPark/smartparkv5
+cd smartparkv6
 ```
 
-### 2. Backend Initialization
-The backend server manages logic and hardware communication.
+### 2. Environment Setup
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
+# Install Python dependencies
 pip install -r backend/requirements.txt
+# Ensure OpenCV and DNN modules are available
 ```
 
 ### 3. Frontend Initialization
-The React-based user interface.
 ```bash
 cd frontend
 npm install
@@ -103,55 +92,31 @@ cd ..
 ```
 
 ### 4. Application Launch
-A unified script is provided for development convenience.
+The system requires both the Management Backend and the Vision Detector to be running:
 ```bash
+# Start all services (Backend + Vision + Frontend)
 chmod +x run_dev.sh
 ./run_dev.sh
 ```
-- **Backend API**: `http://localhost:8000`
+- **Management API**: `http://localhost:8000`
+- **Vision Detector**: `http://localhost:5001`
 - **User Interface**: `http://localhost:5173`
 
 ---
 
-## Hardware Configuration
+## User & Admin Manual
 
-### Pinout Mapping
+### **For Users**
+1. **Login**: Use demo credentials (e.g., User 1/2/3).
+2. **Book**: Select a green slot, choose timing, and confirm.
+3. **Navigate**: Hit **NAVIGATE** to see the animated path to your spot.
 
-#### **Raspberry Pi (Mall 1)**
-Directly GPIO-connected sensors.
-- **Slot 1**: Trig `GPIO 23`, Echo `GPIO 24`
-- **Slot 2**: Trig `GPIO 27`, Echo `GPIO 22`
-- **Slot 3**: Trig `GPIO 5`, Echo `GPIO 6`
-- **Slot 4**: Trig `GPIO 13`, Echo `GPIO 19`
-
-#### **ESP32 (Mall 2 - Wireless Node)**
-Operates as a remote client sending data to the Main Server.
-
-- **WiFi Configuration**: Update credentials in `firmware/smartpark_esp32/smartpark_esp32.ino`.
-- **Sensor Map**:
-  - S1: Trig `13`, Echo `33`
-  - S2: Trig `12`, Echo `32`
-  - S3: Trig `14`, Echo `35`
-  - S4: Trig `27`, Echo `34`
-- **Indicators**:
-  - S1 LED: Pin `25`
-  - S2 LED: Pin `26`
-
-### Firmware Deployment
-1. Load `firmware/smartpark_esp32/smartpark_esp32.ino` in Arduino IDE.
-2. Target Board: **AI Thinker ESP32-CAM** or **DOIT ESP32 DEVKIT V1**.
-3. Verify `serverUrl` matches the backend host IP.
-4. Flash firmware.
+### **For Admins (User 4)**
+1. **Configure ROIs**: Click the **⚙️ Configure ROIs** button in the top header.
+2. **Paint Slots**: Select a Slot ID, then **click and drag** over the live video feed to define its area.
+3. **Save**: Click **Save** to update the detector's logic immediately.
 
 ---
-
-## User Manual
-
-1. **Dashboard Access**: Launch the web interface and select a target facility (Mall 1 or Mall 2).
-2. **Slot Reservation**: Tap any available Green slot. Choose the booking date ("Today" or "Tomorrow") and confirm.
-3. **Route Guidance**: Select **"Navigate"** on your booked slot to visualize the path.
-4. **Smart Redirection**: Use **"Navigate to Closest"** for automated assignment of the best available parking spot.
-
 
 <div align="center">
   <p>Maintained by <strong>Pratham Yadav and Kalepu Yashvardhan</strong></p>
